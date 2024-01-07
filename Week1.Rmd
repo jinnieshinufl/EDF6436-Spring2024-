@@ -1,0 +1,275 @@
+---
+title: "Basic Statistics Review with R"
+author: "Jinnie shin | jinnie.shin@coe.ufl.edu"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+library(truncnorm)
+library(ggplot2)
+```
+
+## 1. Student GPA Data
+
+Here is a sample dataset we will work with (`my.data`)
+
+```{r data, echo=TRUE, exercise=TRUE}
+
+set.seed(3221)
+
+complement <- function(y, rho, x) {
+  if (missing(x)) x <- rnorm(length(y)) # Optional: supply a default if `x` is not given
+  y.perp <- residuals(lm(x ~ y))
+  rho * sd(y.perp) * y + y.perp * sd(y) * sqrt(1 - rho^2)
+}
+
+my.data <- data.frame(id = c(1:250), 
+                      gender = sample(c(0, 1), replace=TRUE, size=250),
+                      age = sample(c(5, 6,7,8), replace=TRUE, size=250),
+                      class = sample(c("A", "B"), replace=TRUE, size=250),
+                      teacher = sample(c("Jones", 'Ferrar'), replace = TRUE, size=250), 
+                      gpa_pre = rtruncnorm(n=250, a=.92, b=4.86, mean=2.81, sd = 0.68), 
+                      creativity = rnorm(250, 80.86, 9.570))
+my.data$gpa_post = complement(my.data$gpa_pre, 0.752)
+
+```
+
+Let's take a look at `my.data`. 
+```{r data_demo, echo=TRUE, exercise=TRUE, exercise.setup='data'}
+
+```
+
+```{r data_show, echo=TRUE, exercise=TRUE, exercise.setup='data'}
+head(my.data) # this will give you an overview of your data head()
+
+dim(my.data) # check the dimension 
+```
+## 2. Commonly used functions in R
+
+| Commonly used functions in R  | Meaning                                    |
+|:-----------------------------:|--------------------------------------------|
+|             `abs(x)`            | the absolute value of x                    |
+|            `exp(x)`             | exponential of x                           |
+|           `log10(x)`            | log of x using base 10                     |
+|            `sqrt(x) `           | square root of x                           |
+|              `xˆy`              | raises x to the power of y (e.g., xˆ2)     |
+|           `cor(x, y)`           | correlation of x and y                     |
+|            `cor(x)`             | correlation matrix of x                    |
+|            `var(x)`             | covariance matrix of x                     |
+|             `sd(x)`             | standard deviation of x                    |
+|            `mean(x)`            | mean of x                                  |
+|           `median(x)`           | median of x                                |
+|            `sum(x)`             | sum of the values in x                     |
+|            `max(x)`             | maximum value in x                         |
+|            `min(x)`             | minimum value in x                         |
+|            `sort(x)`            | sort the values in x in ascending order    |
+|     `apply(x, 1, function)`     | performs the function for each row in x    |
+|     `apply(x, 2, function)`     | performs the function for each column in x |
+|    `ifelse(x == y, yes, no)`    | if x is equal to y, do yes, else do no     |
+
+
+## 3. Variable  
+
+#### What is a **Variable**?
+- Any characteristic of persons or things that is observed to take on different values
+- The opposite of a variable is a constant.
+- **Observed variables** are directly measured in the study wheras **latent variable** are *not* directly measured. However, we estimate latent variables from the observed variables in our study. 
+
+#### Let's take a look at `my.data`. What are the variables? 
+
+```{r two-plus-two3, exercise=TRUE, exercise.setup ="data"}
+str(my.data) # this function str() will provide information regarding the data (variable) type. 
+
+```
+
+```{r two-plus-two33, exercise=TRUE, exercise.setup ="data"}
+mode(my.data$age) # in order to look at the specific variable [dataset]$[varaible name]
+```
+
+```{r mean_mode, exercise=TRUE, exercise.setup ="data"}
+# check the mean of the variable ``gpa_pre`` 
+
+```
+
+```{r mean_mode-solution}
+mean(my.data$gpa_pre) 
+```
+
+```{r mean_mode2, exercise=TRUE, exercise.setup ="data"}
+# check the standard deviation of the variable ``creativity``
+
+```
+
+```{r mean_mode2-solution}
+sd(my.data$creativity)
+```
+
+## 4. Central Tendency 
+
+- **Mode**: Value in one variable's distribution that occurs most frequently
+- **Median**: The score which divides one variable's distribution in half 
+- **Mean **: The arithmetic average of one variable's values 
+ $$ \bar{X} = \frac{\sum_{i = 1}^{N}x_i}{N} = \frac{x_1 +x_2+...+x_N}{N} $$
+
+```{r hist_mode, exercise=TRUE, echo=FALSE, exercise.setup="data"}
+hist(my.data$age) # visualize the distribution of the `age` variable 
+```
+
+```{r mode, exercise=TRUE, echo=FALSE, exercise.setup ="data"}
+# I defined a function to get mode and called this function `getmode` 
+
+
+getmode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+getmode(my.data$age)  # Let's see if this works with the variable `age` 
+
+```
+
+```{r mean, exercise=TRUE, echo=FALSE, exercise.setup ="data"}
+
+# Let's print the mean of the variable `gpa_pre` 
+mean(my.data$gpa_pre)
+
+hist(my.data$gpa_pre) # histogram 
+
+```
+
+```{r median, exercise=TRUE, echo=FALSE, exercise.setup ="data"}
+# let's take a look at median this time. 
+x <- c(2,3,3,3,4,4,5,7,7,7,8,8,10,10,11,12,14,14,14) # first we defined a list 'x'
+median(x) # print the median 
+
+```
+
+```{r median2, exercise=TRUE, echo=FALSE, exercise.setup ="data"}
+# get median of the variable `age`
+
+
+```
+
+## 5. Spread
+It is often useful in statistics to utilize information about how much people deviate from the man of a variable. Let's talk about the difference in these distributions: **GPA_POST 1 vs. GPA-POST 2**
+
+```{r gpa, echo=FALSE, exercise=TRUE, exercise.setup ="data"}
+hist(my.data$gpa_post, xlim=c(1,6), main="Histogram for GPA-Post 1 : Mean=2.81, sd=0.68")
+k = rtruncnorm(n=250, a=2.0, b =5.45, mean=2.81, sd= 0.20)
+hist(k, xlim=c(1,6), main="Histogram for GPA-Post 2: Mean=2.81, sd=0.20")
+```
+
+- Univariate deviation scores: Sums of Squares (SS) 
+This indicates the **sum of each individual's squared deviation from the mean**
+ $$ SS = \sum_{i = 1}^{N}(x_i - \bar{X})^2 $$
+---
+
+**[CLASS EXERCISE]**: Let's compute the Sum of Squares for *gpa_post*!
+
+```{r SS, echo=FALSE, exercise=TRUE, exercise.setup ="data"}
+# first we will create a list that subtracts the mean from each data point of GPA-Post
+var1 = my.data$gpa_post - mean(my.data$gpa_post)
+hist(var1) # Did the distribution shape change? 
+
+# Then, we will create list that saves the sum of squares of the elements in var1 
+var2 = var1^2 
+
+# finally, we compute the sum! 
+SS = sum(var2) 
+print(SS)
+```
+
+```{r SS2, echo=FALSE, exercise=TRUE, exercise.setup ="data"}
+# Compute the Sum of Squares for 'creativity'
+
+```
+
+```{r SS2-solution}
+
+var1 = my.data$creativity - mean(my.data$creativity)
+
+# Then, we will create list that saves the sum of squares of the elements in var1 
+var2 = var1^2 
+
+# finally, we compute the sum! 
+SS = sum(var2) 
+SS
+```
+
+
+
+## 6. Z-scores (Standard Score)
+
+- We can represent a person by the value they were assigned for **a varaible**. 
+- We can also represent a person by a value that indicates how **far** she deviates from the mean of a variable.
+ $$ \hat{z}_i = \frac{x_i- \bar{X}}{s_X} $$
+ 
+```{r Z_score, echo=FALSE, exercise=TRUE, exercise.setup ="data"}
+# standard deviation of the variable *GPA-Post*
+sd(my.data$gpa_post)
+
+# mean of the variable *GPA-Post*
+mean(my.data$gpa_post)
+
+# What is the z-score of a student who had the gpa-post score of 3.56 ?
+######## YOUR ANSWER HERE #############
+ANSWER = ( 3.56 - mean(my.data$gpa_post) ) / sd(my.data$gpa_post)
+print(paste0('Z score is:', ANSWER))
+
+######################################
+```
+
+## 7. Covariance 
+- When two variables are related, we would say that the variables *covary*, meaning that they share some common variance between (Y and X1):
+![image](https://sites.google.com/site/modernprogramevaluation/_/rsrc/1468739234431/2-ballentine-venn-diagrams/cov-cor%20eqs.png)
+- It is clear that these two variables share some variance. This indicates that they covary in some fashion. For instance, as one variable increases, the other one is expected to change in some manner.
+  * What does it mean if **A** increases? 
+  * What does it mean if **A** decreases? 
+  * What does it mean if **A** is positive value?
+  * What does it mean if **A** is negative value? 
+
+- Covariance is the measure of the **joint variability** of two random variables. 
+- Remember, we learned how we measure a variability (spread) of one variable (deviation)
+- In a sample, we estimate the **covariance** of two continuous variables X and Y as:
+$$ \hat{c}_{XY} = \frac{1}{N-1}\sum_{i=1}^{N}(x_i-\bar{X})(y_i-\bar{Y}) $$
+--- 
+ 
+### Covariance and Correlation 
+
+- *Covariance* values are difficult to interpret because they are dependent on the scale of variables. 
+  * E.G. if X1 range from (1 to 10) and X2 range from (1 to 1000) and we are trying to look at how much (X1 vs Y) and (X2 vs Y) covary .. 
+  
+- *Correlation* is a standardized version of the covariance to evaluate the two variables' relationship (normalized covariance value). 
+
+$$ \hat{r}_{XY} = \frac{1}{N-1}\sum_{i=1}^{N}(\hat{z}_{X_i}\hat{z}_{Y_i}),\\ \hat{z}_i = \frac{x_i- \bar{X}}{s_X} $$
+```{r exercise2, echo=FALSE, exercise=TRUE, exercise.setup ="data"}
+
+# Creating the plot
+plot(my.data$gpa_post, my.data$gpa_pre, pch = 19, col = "lightblue")
+
+# Regression line
+abline(lm(my.data$gpa_pre ~ my.data$gpa_post), col = "red", lwd = 3)
+
+# Pearson correlation
+text(paste("Correlation:", round(cor(my.data$gpa_post, my.data$gpa_pre), 2)), x = 25, y = 95)
+
+```
+
+![](https://spss-tutorials.com/img/pearson-correlations-visualized-as-scatterplots.png){ width=75% }
+
+- The correlation coefficient is bound by -1 and 1
+- The correlation coefficient measures the direction and strength of a relationship between two continuous variables
+  * Direction (sign): positive vs. negative
+  * Strength: between 0 and 1 in magnitude
+    * 0 (no relationship)
+    * 1 (perfect relationship)
+
+## 8. Explained-variance (R-squared)
+- If we square a correlation coefficient, we get an indication of how much variance two variables share.
+- Example: 
+  $$r_{x,y} = -.24 $$
+  $$R^2_{x,y} = .06 $$
+- *This indicates that*: 
+  * Variables X and Y share **6%** of their variance. 
+  * Variable X can explain **6%** of the variance in variable Y. 
+  * Variable Y can explain **6%** of the variance in variable X.
