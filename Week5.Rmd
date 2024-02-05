@@ -1,0 +1,84 @@
+---
+title: "Week 5 - Reliability"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library (readr)
+```
+
+## Cronbach's Alpha 
+
+$$ \alpha = \frac{k}{k-1}\left(\frac{2\sum_{i\neq{j}}\sigma_{ij}}{\sigma_{c}^2}\right)\text{,} $$ 
+
+```{r, ca, echo=TRUE, exercise=TRUE, exercise.lines= 23}
+urlfile="https://raw.githubusercontent.com/jinnieshinufl/EDF-6436/main/lab/LabR6436/inst/tutorials/Week5/data/Cronbach_data.csv"
+data<-read_csv(url(urlfile), col_names=TRUE) 
+data<- as.data.frame(data)
+
+# calculating total summated scores
+X = rowSums(data)
+
+# calculating variance of total summated scores
+varX = var(X)
+
+# calculating variance of each item score
+var_matrix = var(data)
+vars = diag(var_matrix)
+
+# calculating sum of item variances
+sum_vars = sum(vars)
+
+# obtaining number of items
+n_items = length(vars)
+
+# calculating alpha
+alpha = (n_items/(n_items-1))*(1-(sum_vars/varX))
+
+print(alpha)
+```
+
+#### Using the `CTT()` package fromt the last lection
+```{r, ctt2, exercise=TRUE}
+
+library(CTT)
+reliability(data, itemal=TRUE)
+
+itemAnalysis(data)$itemReport
+```
+
+#### Reliability and Confidence Interval 
+
+If we know the mean and variance of the observed scores on a test, as well as the reported reliability, we can estimate a confidence interval around an estimated true score. Let’s use Alba’s predicted true score.
+
+
+```{r ci, exercise=TRUE, echo=FALSE, exercise.lines=30}
+rel <- 
+SEM <- 
+VarX <- 
+Var_E  <- (1-rel)*VarX
+SE_Msr <- sqrt(Var_E) 
+LB     <- x - 1.96*SEM
+UB     <- x + 1.96*SEM
+
+``` 
+
+## Spearman-Brown Prophecy
+
+The Spearman-Brown prophecy formula is great for seeing how many more (or fewer) items we will need to achieve a desired reliability.
+
+$$ \rho_{_{CC'new}} = \frac{k\rho_{_{CC'old}}}{1 + (k - 1)\rho_{_{CC'old}} } $$  
+
+For instance, how many more items do we need to achieve the reliability of 0.90 
+
+$$ k = \frac{\rho_{_{CC'new}}(1 - \rho_{_{CC'old}})}{\rho_{_{CC'old}}(1 - \rho_{_{CC'new}}) }\\ $$ 
+
+```{r, sp, exercise=TRUE}
+alpha = 0.83
+k = (0.90*(1-alpha))/(alpha*(1-0.90))
+
+library(CTT)
+relachieved_if_doubled <- spearman.brown(alpha, input = 1.8, n.or.r = "n")
+relachieved_if_doubled
+``` 
