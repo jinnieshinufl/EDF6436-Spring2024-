@@ -1,0 +1,142 @@
+---
+title: "CTT Item Analysis"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+library(psych)
+library(truncnorm)
+library(ggplot2)
+library(CTT)
+knitr::opts_chunk$set(echo = FALSE)
+
+```
+
+## 1. Exam Data (MC-items)
+A data frame with 100 observations on the following 20 items. 
+
+```{r data2, exercise=TRUE, echo=FALSE} 
+
+data(CTTdata)
+attach(CTTdata) 
+head(CTTdata)
+
+print('Answer key is:')
+data(CTTkey)
+print(CTTkey) 
+```
+
+### Change the dataframe to dichotomous 
+
+```{r, score_data, echo=FALSE, exercise=TRUE, exercise.setup="data2"}
+
+data <- score(CTTdata,CTTkey, output.scored=TRUE)
+response <- as.data.frame(data$scored)
+scores <- as.data.frame(data$score)
+
+head(scores) # this saves each student's total score 
+head(response) # this saves the item score (0 or 1)
+```
+
+```{r, test2, exercise=TRUE, echo=TRUE, exercise.setup="score_data"} 
+describe(scores)
+
+x <- scores$'data$score'
+h <- hist(x, las=1, breaks="FD", xlab= "Red vertical line shows the mean.", 
+          main="", col = "cyan")
+rug(x)
+abline(v = mean(x), col = "red", lwd = 2)
+
+```
+
+## 2. Item Difficulty 
+
+Now we have a new data frame called `response` which stores the dichotomous item scores
+```{r,  e12, echo=FALSE, exercise=TRUE, exercise.setup="score_data"}
+head(response)
+```
+
+### Item Analysis 
+Now you pilot tested these MC items, our task is to quanitfy the "quality" of the items.
+- How well can it tell apart the students based on their ability level?
+- How hard or easy is the item? 
+
+We will use the item statistics we learned in CTT 
+
+### Item Difficulty (P value)
+
+In CTT, item difficulty, also known as item p-value, is often quantified in terms of the mean item score or the percentage of students who answer the item correctly. 
+
+Let's calculate the P-value using `colMeans()`
+
+```{r, answer1, echo=TRUE, exercise=TRUE, exercise.setup="score_data"} 
+# Let's compute the p-value first (and call this `pj`)
+pj = # compute the p values 
+
+```
+
+```{r, answer1-solution}
+# Let's compute the p-value first 
+pj = colMeans(response) 
+```
+
+- Q1: Which of the following items is the most difficult?
+- Q2: Which of the following items is the least difficult? 
+
+## 3. Item Discrimination 
+Item discrimination can be quantified in terms of the item-total correlation. 
+
+- Q1: What types of discrimination index should we adopt? 
+
+- Point-biserial correlation:
+$$ \rho_{pbis} = [\frac{\mu_{+}-\mu_{X}}{\sigma_{X}}](\sqrt\frac{p}{q})$$ 
+- Spearman’s rho correlation:
+$$ d_{j} = \frac{\sum_{i=1}^{N}(X_{ij}-p_{j})(X_{C_{i}} - \mu_{X_{c}})}{\sqrt{\sum_{i=1}^{N}(X_{ij}-p_{j})^2\sum_{i=1}^{N}{(X_{C{i}}-\mu_{X_{c}})^2}}} $$ 
+```{r, ex345, exercise=TRUE}
+
+
+```
+
+```{r, IA, echo=TRUE, exercise=TRUE, exercise.setup="score_data", exercise.lines=30} 
+# point biserial 
+iA <- itemAnalysis(response, hardFlag=.25, pBisFlag=.15)
+iA$itemReport$pBis = round(iA$itemReport$pBis,2)
+print(iA$itemReport)
+
+# Plot items based on the pre-defined cut score (0.2)
+item.discrimination <- data.frame(item = 1:20 ,
+                                  discrimination =iA$itemReport$pBis)
+cvpb = 0.2
+plot(item.discrimination,
+     type = "p",
+     pch = 1,
+     cex = 3,
+     col = "purple",
+     ylab = "Item-Total Correlation",
+     xlab = "Item Number",
+     ylim = c(0, 1),
+     main = "Test Item Discriminations")
+
+abline(h = cvpb, col = "red")
+
+outlier <- data.matrix(subset(item.discrimination,
+                              subset = (item.discrimination[, 2] <cvpb)))
+
+text(outlier, paste("i", outlier[,1], sep = ""), col = "red", cex = .7)
+```
+
+### Item Difficulty and Discrimination `
+
+```{r, icc2, echo=TRUE, exercise=TRUE, exercise.setup="score_data"} 
+iA <- itemAnalysis(response, hardFlag=.25, pBisFlag=.15)
+result = iA$itemReport 
+plot(y=result$itemMean, x=result$pBis, 
+    ylim=c(0,1) , xlim=c(0,1), 
+     pch=18, 
+     cex=2, 
+     col="#69b3a2",
+     xlab="Item Discrimination", ylab="Item Difficulty",
+     main="A simple scatterplot"
+     )
+
+```
