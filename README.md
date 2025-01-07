@@ -1,2 +1,2 @@
-# EDF6436-Spring2024-
-Spring 2024 - EDF 6436 Lab Repository
+# EDF6436-Spring2025-
+Spring 2025 - EDF 6436 Lab Repository
