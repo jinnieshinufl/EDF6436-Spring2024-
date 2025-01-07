@@ -1,5 +1,5 @@
 ---
-title: "Week 5 - Reliability"
+title: "Reliability"
 output: html_notebook
 ---
 
