@@ -1,7 +1,6 @@
 ---
 title: "Confirmatory Factor Analysis"
 author: "Jinnie shin | jinnie.shin@coe.ufl.edu"
-date: "26/3/2024"
 output: learnr::tutorial
 runtime: shiny_prerendered
 ---
