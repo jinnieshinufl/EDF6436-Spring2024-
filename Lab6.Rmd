@@ -1,7 +1,6 @@
 ---
 title: "Explaratory Factor Analysis"
 author: "Jinnie shin | jinnie.shin@coe.ufl.edu"
-date: "3/5/2024"
 output: html_document
 ---
 
