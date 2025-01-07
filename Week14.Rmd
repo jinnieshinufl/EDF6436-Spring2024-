@@ -1,0 +1,312 @@
+---
+title: "Item Response Theory"
+author: "Jinnie shin | jinnie.shin@coe.ufl.edu"
+date: "03/29/2022"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+#install.packages("ltm")
+#install.packages("eRm")
+library(ltm) 
+library(eRm)
+library(learnr)
+library(questionr)
+library(corrplot)
+```
+
+## 1. Data 
+
+We will call the data (`Rasch_data.txt`) which includes 21 items answered by 200 students. 
+
+```{r, data, exercise=TRUE, echo=TRUE}
+data <- read.table("./data/Rasch_data.txt",header=FALSE,sep="")
+head(data)
+#Change the text file into matrix format that ltm can read
+data <- as.matrix(data[1:200,1:20])
+head(data)
+```
+
+## 2. Rasch Model 
+
+we will run a rasch model using a package called `ltm` and the function called `rasch()`
+
+### Running a rasch model 
+```{r, rasch, exercise=TRUE, echo=FALSE, exercise.setup = "data", exercise.lines=12}
+
+#Running rasch model 
+# the constraints are needed to hold all discrimination parameters to <?>
+
+RaschModel <- rasch(data, # takes your data as your first input 
+                    constraint= # requires a constraint 
+                    )
+
+# Let's take a look at the summary of the model results 
+
+
+```
+
+- Help!
+```{r, help, exercise=TRUE}
+
+```
+
+### Extracting estimated parameters 
+- Which parameters are we freely estimating in this model?
+
+```{r param, exercise=TRUE, echo=FALSE,  exercise.setup = "rasch", exercise.lines=10}
+#Extracting estimated parameters
+
+#`coef()`` function let you look at the estimated parameters and we will call this `item.pars`
+
+# Let's present it as a data frame using `as.data.frame()`: default r function 
+
+
+```
+
+### Getting ability level 
+```{r ability, exercise=TRUE, echo=FALSE,  exercise.setup = "param", exercise.lines=14}
+
+#Getting ability estimates associated with each response vector
+# we need to use a new argument `resp.patterns = <data name>`
+fscores <- 
+
+#(i.e., thetas are z values)
+theta = fscores$score.dat$z1
+
+assign("theta", theta, envir=globalenv())   
+```
+
+#### Compare the ability level estimate with the total score 
+
+```{r, newdataset, exercise=TRUE, exercise.setup = "data", exercise.lines=11}
+# step 1: let's compute the total score 
+
+
+# step 2: extract lines (rows) with the same total score  == 7
+
+
+# step 3: compare with the factor score 
+
+```
+
+### Item Characteristic Curve 
+
+$$ p = \frac{e^{1.7*(theta - b)}}{1 + e^{1.7*(theta - b)}} $$ 
+# Let's create a function that computes the probability given the theta and 
+
+```{r, icc-value, exercise=TRUE, echo=FALSE, exercise.lines=25}
+# STEP 1
+# this function takes two input values -> theta and b-parameter 
+prob <- function(theta, b){
+   # Provide the formula here 
+  
+}
+# STEP 2
+# Let's test it quickly ==> if b=2, theta=2 prob=?
+
+
+
+# STEP 3
+# Let's create ICC for an item with b-parm =2.0
+# ability range from -4 to 4 (increase by +1)
+
+# STEP 4: Uncomment the last three lines when you are ready :-) 
+#plot(c(p0, p1, p2, p3, p4, p5, p6, p7, p8), 
+#     x = c(-4, -3, -2, -1, 0, 1, 2, 3, 4), 
+#     xlab = "Ability", ylab="Probability")
+
+```
+
+### Plotting 
+- Here's your shortcut! `plot()`
+
+```{r plot, exercise=TRUE, echo=FALSE , exercise.setup = "rasch"}
+#Plotting ICCs for all items
+plot(RaschModel, main="ICC from Rasch Model")
+
+```
+
+
+#### Plotting for a single item 
+
+```{r plot_one, exercise=TRUE, echo=FALSE,  exercise.setup = "rasch"}
+
+#Plotting ICC for a single item
+plot(RaschModel, items = c(2), main="ICC of Item 2")
+
+```
+
+### Item Information Function 
+$$p = \frac{\exp^{1.7*(\theta - b)}}{1 + \exp^{1.7*(\theta - b)}}$$
+$$ I(\theta) = p(1-p) $$
+
+```{r, iif, exercise=TRUE, echo=FALSE, exercise.lines=30}
+
+# STEP 1
+# this function takes two input values -> theta and b-parameter 
+info <- function(theta, b){
+  # provide the equation here 
+}
+
+# STEP 2
+# Let's test it quickly ==> if b=2, theta=2 info=?
+
+# STEP 3
+# Let's create ICC for an item with b-parm =2.0
+# ability range from -4 to 4 (increase by +1)
+
+
+# STEP 4: Uncomment the last three lines when you are ready :-) 
+plot(c(info0, info1, info2, info3, info4, info5, info6, info7),
+     x = c(-4, -3, -2, -1, 0, 1, 2, 3),
+     xlab = "Ability", ylab="Information")
+```
+
+### Plotting Item and Test Information Curve (TCC)
+
+```{r icc2, exercise=TRUE, echo=FALSE, exercise.setup = "rasch"}
+#Plotting TIC
+plot(RaschModel,  type=c("IIC"), main="Item Information Function - All")
+
+#Plotting ICC
+plot(RaschModel, items = c(2), type=c("IIC"), main="Item Information Function - Item 2")
+
+```
+
+```{r question, echo=FALSE}
+
+question('What is the information for this item [b=0.7694] at θ = 0.7694?', 
+  answer("0.25", correct=TRUE), 
+  answer("0.025"), 
+  answer("0.0025"),
+  answer("0.00025"))
+```
+
+### Evaluating the Model 
+#### 1. Test for the item fit using `item.fit`
+```{r 1pleval, exercise=TRUE, echo=FALSE, exercise.setup = "rasch"}
+item.fit(RaschModel,simulate.p.value=T) # are there any particular items with small p-values? 
+
+
+```
+#### 1. Test for the person fit using `person.fit`
+```{r 1pleval2, exercise=TRUE, echo=FALSE, exercise.setup = "rasch"}
+person.fit(RaschModel,simulate.p.value=T) 
+
+```
+
+
+#### 3. Estimate ability score (theta) & Person-item map
+> Person-item map: Displays the location of person abilities and item difficulties respectively along the same latent dimension. 
+
+```{r 1pleval3, exercise=TRUE, echo=FALSE, exercise.setup = "rasch"}
+fscores = factor.scores(RaschModel) # don't provide the response matrix thist ime 
+plot(fscores)
+plot(fscores, include.items = TRUE, main ="Item Person Map under 1PL model")
+```
+
+
+#### 4. Test for Unidimensionality (this will run for a long time)
+```{r 1pleval4, exercise=TRUE, echo=FALSE, exercise.setup = "rasch"}
+unidimTest(RaschModel, data)
+# the null hypothesis = unidimensional
+# if the test is significant =/ unidimensional 
+```
+
+## 2. 2-PL and 3-PL 
+
+### Data
+
+Let's call the data (`2&3PL_data.txt`) which included a total of 3,000 students' responses on 20 dichotomously scored items. 
+
+```{r, data2, exercise=TRUE, echo=FALSE}
+
+temp <- read.table("./data/2&3PL_data.txt",header=FALSE,sep="")
+
+#Change the text file into matrix format that ltm can read
+data <- as.matrix(temp[1:3000,1:20])
+
+```
+
+### Running 2PL Model
+
+```{r, 2pl, exercise=TRUE, echo=FALSE, exercise.setup = "data2", exercise.lines=30}
+
+#Running 2-PL model
+two.pl.model <- ltm(data ~ z1)
+
+#Assessing item fit
+#null hypothesis is that observed data matches expected values
+#item.fit(two.pl.model,simulate.p.value=TRUE)
+
+#Extracting estimated parameters
+item.pars.two.pl <- coef(two.pl.model)
+item.pars.two.pl <- as.data.frame(item.pars.two.pl)
+item.pars.two.pl
+
+
+
+#Plotting ICCs 
+plot(two.pl.model, main="ICC Curves under 2-PL Model")
+
+#Creating an item person map
+fscores <- factor.scores(two.pl.model)
+plot(fscores, include.items = TRUE, main ="Item Person Map under 2PL model")
+
+assign("two.pl.model",two.pl.model, envir=globalenv())
+```
+
+### Running 3PL Model
+
+```{r, 3pl, exercise=TRUE, echo=FALSE, exercise.setup = "data2"}
+
+#Running 3PL model 
+three.pl.model <- tpm(data)
+
+#Assessing item fit
+#null hypothesis is that observed data matches expected values
+#item.fit(three.pl.model, simulate.p.value=TRUE)
+
+#Extracting estimated parameters
+item.pars.three.pl <- coef(three.pl.model)
+item.pars.three.pl <- as.data.frame(item.pars.three.pl)
+item.pars.three.pl
+
+#Plotting ICCs
+plot(three.pl.model, main="ICC Curves under 3-PL Model")
+
+#Creating an item person map
+fscores <- factor.scores(three.pl.model)
+plot(fscores, include.items = TRUE, main ="Item Person Map under 3PL model")
+assign("three.pl.modell",three.pl.model, envir=globalenv())
+```
+
+## 3. Model-fit 1PL (eRm-other pacakges)
+
+```{r, rasch2, exercise=TRUE, echo=FALSE, exercise.setup = "data", exercise.lines=30}
+
+library(eRm) # loading a library 
+one.pl.model <- RM(data) #using a `RM()` function to fit a rasch model using our dataset
+summary(one.pl.model ) # this will give you a summary of the outcome
+betas <- -coef(one.pl.model ) #we are extracting only the difficulty parameter, but reverse code them
+plotjointICC(one.pl.model , cex = .6) # we can plot ICC 
+plotPImap(one.pl.model , cex.gen = .55) # plot person-item map 
+
+person.fit = person.parameter(one.pl.model)
+itemfit(person.fit)
+plotPWmap(one.pl.model)
+
+plotPWmap(one.pl.model, pmap=TRUE, imap=FALSE)
+assign("one.pl.model",one.pl.model, envir=globalenv())
+```
+
+## 4. Model-fit Comparisons (eRm-other pacakges)
+```{r, rasch3, exercise=TRUE, echo=FALSE, exercise.lines=5}
+anova(two.pl.model, three.pl.model)
+```
+
+```{r, rasch4, exercise=TRUE, echo=FALSE, exercise.lines=5}
+cor(coef(two.pl.model)[, 1], coef(three.pl.model)[, 2])
+```
